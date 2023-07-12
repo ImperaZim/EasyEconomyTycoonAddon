@@ -74,7 +74,7 @@ final class EasyEconomyTycoonAddon extends PluginBase implements Listener {
   public function ChatEvent(PlayerChatEvent $event) {
     $player = $event->getPlayer();
     $message = $event->getMessage();
-    $event->setFormatter(new LegacyRawChatFormatter($format));
+    //$event->setFormatter(new LegacyRawChatFormatter($format));
   }
 
 }
