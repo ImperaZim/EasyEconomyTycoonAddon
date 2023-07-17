@@ -5,6 +5,7 @@ namespace ImperaZim\EasyEconomy;
 use pocketmine\player\Player;
 use pocketmine\event\Listener;
 use pocketmine\plugin\PluginBase;
+use pocketmine\scheduler\AsyncTask;
 use pocketmine\event\player\PlayerChatEvent;
 
 use ImperaZim\EasyEconomy\EasyEconomy;
@@ -13,11 +14,11 @@ use ImperaZim\EasyEconomy\event\PlayerMoneyUpdateEvent;
 
 final class EasyEconomyTycoonAddon extends PluginBase implements Listener {
 
-  protected static ?EasyEconomyTycoonAddon $instance = null;
-  
   public $cfg;
   public $tycoon;
   public $provider;
+
+  protected static ?EasyEconomyTycoonAddon $instance = null;
 
   public static function getInstance() : ?EasyEconomyTycoonAddon {
     return self::$instance;
@@ -29,34 +30,13 @@ final class EasyEconomyTycoonAddon extends PluginBase implements Listener {
 
   public function onEnable() : void {
     self::$instance = $this;
-    $ee = $this->getServer()->getPluginManager()->getPlugin("EasyEconomy");
-    if ($ee === null) {
-      throw new \InvalidArgumentException("It is not possible to start the addon \"EasyEconomyTycoonAddon\" because the \"EasyEconomy\" plugin is not installed on the server!");
-    }
-    
-    $this->cfg = $ee->getConfig();
-    $this->provider = $ee->getProvider();
-
-    if (($data = $this->cfg->getNested('addon.tycoon', null))) {
-      if (!isset($data['enable'])) {
-        $this->cfg->setNested('addon.tycoon.enable', true);
-      }
-      if (!isset($data['chat_tag'])) {
-        $this->cfg->setNested('addon.tycoon.chat_tag', '[$]');
-      }
-      $this->cfg->save();
-    }
-
-    foreach ($this->provider->getAllInOrder() as $hash => $data) {
-      $this->tycoon = $data['name'];
-      break;
-    }
-    $this->getServer()->getPluginManager()->registerEvents($this, $this);
+    $this->getScheduler()->scheduleRepeatingTask(new Task($this),20);
   }
-  
+
   public function onMoneyUpdate(PlayerMoneyUpdateEvent $event) : void {
+    $easyeconomy = $this->getServer()->getPluginManager()->getPlugin("EasyEconomy");
     $top = null;
-    foreach ($this->provider->getAllInOrder() as $hash => $data) {
+    foreach ($easyeconomy->getProvider()->getAllInOrder() as $hash => $data) {
       $top = $data['name'];
       break;
     }
@@ -71,8 +51,9 @@ final class EasyEconomyTycoonAddon extends PluginBase implements Listener {
     $old = $this->getServer()->getPlayerByPrefix($event->getOld());
     $new = $this->getServer()->getPlayerByPrefix($event->getNew());
 
-    if ($this->cfg->getNested('addon.tycoon.enable', false)) {
-      $tag = $this->cfg->setNested('addon.tycoon.chat_tag');
+    $easyeconomy = $this->getServer()->getPluginManager()->getPlugin("EasyEconomy");
+    if ($easyeconomy->getConfig()->getNested('addon.tycoon.enable', false)) {
+      $tag = $easyeconomy->getConfig()->setNested('addon.tycoon.chat_tag');
       if ($tag != null) {
         if ($old instanceof Player) {
           $old->setNameTag(str_replace($tag . ' ', '', $old->getNameTag()));
