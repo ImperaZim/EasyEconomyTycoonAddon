@@ -13,15 +13,25 @@ use ImperaZim\EasyEconomy\event\PlayerMoneyUpdateEvent;
 
 final class EasyEconomyTycoonAddon extends PluginBase implements Listener {
 
+  protected static ?EasyEconomyTycoonAddon $instance = null;
+
+  public static function getInstance() : ?EasyEconomyTycoonAddon {
+    return self::$instance;
+  }
+
+  public function onLoad() : void {
+    self::$instance = $this;
+  }
+
   public function onEnable() : void {
-    if (!class_exists(EasyEconomy::class)) {
+    self::$instance = $this;
+    if ($this->getServer()->getPluginManager()->getPlugin("EasyEconomy") === null) {
       throw new \InvalidArgumentException("It is not possible to start the addon \"EasyEconomyTycoonAddon\" because the \"EasyEconomy\" plugin is not installed on the server!");
       return;
     }
 
-    $this->plugin = EasyEconomy::getInstance();
-    $this->config = $this->plugin->getConfig();
-    $this->provider = $this->plugin->getProvider();
+    $this->config = EasyEconomy::getInstance()->getConfig();
+    $this->provider = EasyEconomy::getInstance()->getProvider();
 
     if ($this->config->getNested('addon.tycoon', null) == null) {
       $data = $this->config->getNested('addon.tycoon', null);
@@ -34,7 +44,7 @@ final class EasyEconomyTycoonAddon extends PluginBase implements Listener {
       $this->config->save();
     }
 
-    foreach ($provider->getAllInOrder() as $hash => $data) {
+    foreach ($this->provider->getAllInOrder() as $hash => $data) {
       $this->tycoon = $data['name'];
       break;
     }
@@ -69,12 +79,6 @@ final class EasyEconomyTycoonAddon extends PluginBase implements Listener {
         }
       }
     }
-  }
-
-  public function ChatEvent(PlayerChatEvent $event) {
-    $player = $event->getPlayer();
-    $message = $event->getMessage();
-    //$event->setFormatter(new LegacyRawChatFormatter($format));
   }
 
 }
