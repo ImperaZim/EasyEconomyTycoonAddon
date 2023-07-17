@@ -14,6 +14,10 @@ use ImperaZim\EasyEconomy\event\PlayerMoneyUpdateEvent;
 final class EasyEconomyTycoonAddon extends PluginBase implements Listener {
 
   protected static ?EasyEconomyTycoonAddon $instance = null;
+  
+  public $cfg;
+  public $tycoon;
+  public $provider;
 
   public static function getInstance() : ?EasyEconomyTycoonAddon {
     return self::$instance;
@@ -25,23 +29,21 @@ final class EasyEconomyTycoonAddon extends PluginBase implements Listener {
 
   public function onEnable() : void {
     self::$instance = $this;
-    if ($this->getServer()->getPluginManager()->getPlugin("EasyEconomy") === null) {
+    if ($ee = ($this->getServer()->getPluginManager()->getPlugin("EasyEconomy")) === null) {
       throw new \InvalidArgumentException("It is not possible to start the addon \"EasyEconomyTycoonAddon\" because the \"EasyEconomy\" plugin is not installed on the server!");
-      return;
     }
+    
+    $this->cfg = $ee->getConfig();
+    $this->provider = $ee->getProvider();
 
-    $this->config = EasyEconomy::getInstance()->getConfig();
-    $this->provider = EasyEconomy::getInstance()->getProvider();
-
-    if ($this->config->getNested('addon.tycoon', null) == null) {
-      $data = $this->config->getNested('addon.tycoon', null);
-      if ($data == null || isset($data['enable'])) {
-        $this->config->setNested('addon.tycoon.enable', true);
+    if (($data = $this->cfg->getNested('addon.tycoon', null))) {
+      if (!isset($data['enable'])) {
+        $this->cfg->setNested('addon.tycoon.enable', true);
       }
-      if ($data == null || isset($data['chat_tag'])) {
-        $this->config->setNested('addon.tycoon.chat_tag', '[$]');
+      if (!isset($data['chat_tag'])) {
+        $this->cfg->setNested('addon.tycoon.chat_tag', '[$]');
       }
-      $this->config->save();
+      $this->cfg->save();
     }
 
     foreach ($this->provider->getAllInOrder() as $hash => $data) {
@@ -68,8 +70,8 @@ final class EasyEconomyTycoonAddon extends PluginBase implements Listener {
     $old = $this->getServer()->getPlayerByPrefix($event->getOld());
     $new = $this->getServer()->getPlayerByPrefix($event->getNew());
 
-    if ($this->config->getNested('addon.tycoon.enable', false)) {
-      $tag = $this->config->setNested('addon.tycoon.chat_tag');
+    if ($this->cfg->getNested('addon.tycoon.enable', false)) {
+      $tag = $this->cfg->setNested('addon.tycoon.chat_tag');
       if ($tag != null) {
         if ($old instanceof Player) {
           $old->setNameTag(str_replace($tag . ' ', '', $old->getNameTag()));
