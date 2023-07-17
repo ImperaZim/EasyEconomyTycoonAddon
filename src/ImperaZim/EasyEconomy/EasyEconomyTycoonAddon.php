@@ -54,7 +54,6 @@ final class EasyEconomyTycoonAddon extends PluginBase implements Listener {
     $this->getServer()->getPluginManager()->registerEvents($this, $this);
   }
   
-  /*
   public function onMoneyUpdate(PlayerMoneyUpdateEvent $event) : void {
     $top = null;
     foreach ($this->provider->getAllInOrder() as $hash => $data) {
@@ -67,7 +66,6 @@ final class EasyEconomyTycoonAddon extends PluginBase implements Listener {
       $this->tycoon = $top;
     }
   }
-  */
 
   public function onTycoonUpdate(TycoonUpdateEvent $event) : void {
     $old = $this->getServer()->getPlayerByPrefix($event->getOld());
